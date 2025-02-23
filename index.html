@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web chat application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #chat {
+            width: 300px;
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Instant Messaging</h1>
+    <div id="chat"></div>
+    <input type="text" id="message" placeholder="Enter your message">
+    <button id="send">Send</button>
+    <script>
+        const chat = document.getElementById('chat');
+        const message = document.getElementById('message');
+        const send = document.getElementById('send');
+
+        const socket = new WebSocket('ws://localhost:8080');
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket connection established');
+        });
+
+        socket.addEventListener('message', event => {
+            console.log('Message received from server:', event.data);
+            const p = document.createElement('p');
+            p.textContent = event.data;
+            chat.appendChild(p);
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        socket.addEventListener('error', error => {
+            console.error('WebSocket error:', error);
+        });
+
+        socket.addEventListener('close', () => {
+            console.log('WebSocket connection closed');
+        });
+
+        function sendMessage() {
+            const text = message.value;
+            if (text.trim() === '') return;
+            message.value = '';
+            const timestamp = new Date().toLocaleTimeString();
+            const formattedMessage = `${timestamp} - ${text}`;
+            console.log('Sending message:', formattedMessage);
+            socket.send(formattedMessage);
+        }
+
+        send.addEventListener('click', sendMessage);
+
+        message.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>  
+</body>
+</html>
